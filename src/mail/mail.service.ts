@@ -1,4 +1,4 @@
-import { Global, Inject, Injectable } from "@nestjs/common";
+import { Inject, Injectable } from "@nestjs/common";
 import * as FormData from "form-data";
 import { CONFIG_OPTIONS } from "../common/common.constants";
 import { EmailVar, MailModuleOptions } from "./mail.interfaces";
@@ -10,7 +10,7 @@ export class MailService {
         
     }
 
-    private async sendEmail(to: string, subject: string, template: string, emailVars: EmailVar[]) {
+    async sendEmail(to: string, subject: string, template: string, emailVars: EmailVar[]):Promise<boolean> {
         const form = new FormData();
         form.append("from", `Dohyun from Uber Eats Clone <mailgun@${this.options.domain}>`);
         form.append("to", to);
@@ -18,21 +18,22 @@ export class MailService {
         form.append("template", template);
         emailVars.forEach((eVar) => form.append(`v:${eVar.key}`, eVar.value));
         try {
-            got(`https://api.mailgun.net/v3/${this.options.domain}/messages`, {
+            got.post(`https://api.mailgun.net/v3/${this.options.domain}/messages`, {
                 headers: {
                     Authorization: `Basic ${Buffer.from(`api:${this.options.apiKey}`).toString("base64")}`,
                 },
                 method: "POST",
                 body: form,
             });
+            return true; 
         } catch (e) {
-            console.log(e);
+            return false; 
         }
     }
 
-    sendVerificationEmail(email: string, code: string) {
-        this.sendEmail("brandonnam2020@gmail.com", "Verify Your Email", "uber-eats-verify", [
-            { key: "code", value: code },
+    async sendVerificationEmail(email: string, code: string) {
+        await this.sendEmail("brandonnam2020@gmail.com", "Verify Your Email", "uber-eats-verify", [
+            { key: "code", value: code},
             { key: "username", value: email },
         ]);
     }

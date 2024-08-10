@@ -1,11 +1,9 @@
 import { ApolloDriver, ApolloDriverConfig } from "@nestjs/apollo";
 import { MiddlewareConsumer, Module, NestModule, RequestMethod } from "@nestjs/common";
 import { GraphQLModule } from "@nestjs/graphql";
-import { RestaurantsModule } from "./restaurants/restaurants.module";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { ConfigModule } from "@nestjs/config";
 import * as Joi from "joi";
-import { Restaurant } from "./restaurants/entities/restaurant.entity";
 import { UsersModule } from "./users/users.module";
 import { CommonModule } from "./common/common.module";
 import { User } from "./users/entities/user.entity";
@@ -14,6 +12,7 @@ import { JwtMiddleware } from "./jwt/jwt.middleware";
 import { AuthModule } from "./auth/auth.module";
 import { Verification } from "./users/entities/verification.entity";
 import { MailModule } from "./mail/mail.module";
+import { RestaurantModule } from './restaurant/restaurant.module';
 
 @Module({
     imports: [
@@ -22,7 +21,7 @@ import { MailModule } from "./mail/mail.module";
             envFilePath: process.env.NODE_ENV === "dev" ? ".env.development.local" : ".env.test.local",
             ignoreEnvFile: process.env.NODE_ENV === "prod",
             validationSchema: Joi.object({
-                NODE_ENV: Joi.string().valid("dev", "prod"),
+                NODE_ENV: Joi.string().valid("dev", "prod", "test"),
                 DB_HOST: Joi.string().required(),
                 DB_PORT: Joi.string().required(),
                 DB_USERNAME: Joi.string().required(),
@@ -39,16 +38,15 @@ import { MailModule } from "./mail/mail.module";
             port: +process.env.DB_PORT,
             username: process.env.DB_USERNAME,
             database: process.env.DB_DATABASE,
-            entities: [Restaurant, User, Verification],
+            entities: [User, Verification],
             synchronize: process.env.NODE_ENV !== "prod",
-            logging: process.env.NODE_ENV !== "prod",
+            logging: process.env.NODE_ENV !== "prod" && process.env.NODE_ENV !== "test",
         }),
         GraphQLModule.forRoot<ApolloDriverConfig>({
             driver: ApolloDriver,
             autoSchemaFile: true,
             context: ({ req }) => ({ user: req["user"] }),
         }),
-        RestaurantsModule,
         JwtModule.forRoot({
             privateKey: process.env.PRIVATE_KEY,
         }),
@@ -60,6 +58,7 @@ import { MailModule } from "./mail/mail.module";
             domain: process.env.DOMAIN_NAME,
             fromEmail: process.env.MAILGUN_FROM_EMAIL,
         }),
+        RestaurantModule,
     ],
     controllers: [],
     providers: [],
