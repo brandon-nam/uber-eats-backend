@@ -66,8 +66,9 @@ export class UsersService {
 
     async findById({ userId }: UserProfileInput): Promise<UserProfileOutput> {
         try {
+            console.log("userId: ",userId); 
             const user = await this.users.findOneOrFail({ where: { id: userId } });
-
+            console.log("user email: ", user.email); 
             return {
                 ok: true,
                 user,

@@ -1,14 +1,16 @@
 import { Field, ObjectType, registerEnumType } from "@nestjs/graphql";
 import { CoreEntity } from "src/common/entities/core.entity";
-import { BeforeInsert, BeforeUpdate, Column, Entity } from "typeorm";
+import { BeforeInsert, BeforeUpdate, Column, Entity, OneToMany, RelationId } from "typeorm";
 import * as bcrypt from 'bcrypt'; 
 import { InternalServerErrorException } from "@nestjs/common";
-import { IsEmail, IsEnum } from "class-validator";
+import { IsBoolean, IsEmail, IsEnum, IsString } from "class-validator";
+import { Restaurant } from "src/restaurant/entities/restaurant.entity";
+import { Order } from "src/orders/entities/order.entity";
 
-enum UserRole {
-    Client, 
-    Owner, 
-    Delivery
+export enum UserRole {
+    Client = 'Client', 
+    Owner = 'Owner', 
+    Delivery = 'Delivery'
 }
 
 registerEnumType(UserRole, { name: 'UserRole' })
@@ -24,6 +26,7 @@ export class User extends CoreEntity {
 
     @Column()
     @Field(type => String)
+    @IsString()
     password: string;
     
     @Column({ type: 'enum', enum: UserRole })
@@ -33,7 +36,20 @@ export class User extends CoreEntity {
 
     @Column({ default: false })
     @Field(type => Boolean)
+    @IsBoolean()
     verified: boolean;
+
+    @Field(type => [Restaurant])
+    @OneToMany(type => Restaurant, (restaurant) => restaurant.owner)
+    restaurants: Restaurant[];
+
+    @Field(type => [Order]) 
+    @OneToMany(type => Order, (order) => order.driver)
+    rides: Order[];
+
+    @Field(type => [Order]) 
+    @OneToMany(type => Order, (order) => order.customer)
+    orders: Order[];
 
     @BeforeUpdate()
     @BeforeInsert()
