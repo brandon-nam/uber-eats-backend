@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Inject, Injectable } from "@nestjs/common";
 import { Order, OrderStatus } from "./entities/order.entity";
 import { Repository } from "typeorm";
 import { InjectRepository } from "@nestjs/typeorm";
@@ -10,6 +10,9 @@ import { Dish, DishOption } from "src/restaurant/entities/dish.entity";
 import { GetOrdersInput, GetOrdersOutput } from "./dtos/get-orders.dto";
 import { GetOrderInput, GetOrderOutput } from "./dtos/get-order.dto";
 import { EditOrderInput, EditOrderOutput } from "./dtos/edit-order.dto";
+import { PubSub } from "graphql-subscriptions";
+import { NEW_COOKED_ORDER, NEW_ORDER_UPDATE, NEW_PENDING_ORDER, PUB_SUB } from "src/common/common.constants";
+import { TakeOrderInput, TakeOrderOutput } from "./dtos/take-order.dto";
 
 @Injectable()
 export class OrdersService {
@@ -17,7 +20,8 @@ export class OrdersService {
         @InjectRepository(Order) private readonly orderRepository: Repository<Order>,
         @InjectRepository(Restaurant) private readonly restaurants: Repository<Restaurant>,
         @InjectRepository(OrderItem) private readonly orderItems: Repository<OrderItem>,
-        @InjectRepository(Dish) private readonly dishRepository: Repository<Dish>
+        @InjectRepository(Dish) private readonly dishRepository: Repository<Dish>,
+        @Inject(PUB_SUB) private readonly pubSub: PubSub
     ) {}
 
     async createOrder(customer: User, { restaurantId, createOrderInput }: CreateOrderInput): Promise<CreateOrderOutput> {
@@ -73,7 +77,7 @@ export class OrdersService {
                 orderItems.push(orderItem);
             }
 
-            await this.orderRepository.save(
+            const newOrder = await this.orderRepository.save(
                 this.orderRepository.create({
                     customer: customer,
                     items: orderItems,
@@ -81,6 +85,10 @@ export class OrdersService {
                     restaurant: restaurant,
                 })
             );
+
+            await this.pubSub.publish(NEW_PENDING_ORDER, {
+                pendingOrders: { newOrder, ownerId: restaurant.ownerId },
+            });
 
             return {
                 ok: true,
@@ -185,7 +193,6 @@ export class OrdersService {
                 where: {
                     id: id,
                 },
-                relations:["restaurant"]
             });
 
             if (!this.canSee(order, user)) {
@@ -216,7 +223,15 @@ export class OrdersService {
             }
 
             order.orderStatus = editedOrderStatus;
-            await this.orderRepository.save(order);
+            const updatedOrder = await this.orderRepository.save(order);
+
+            if (user.role === UserRole.Owner) {
+                if (orderStatus === OrderStatus.Cooked) {
+                    await this.pubSub.publish(NEW_COOKED_ORDER, updatedOrder);
+                }
+            }
+
+            await this.pubSub.publish(NEW_ORDER_UPDATE, { orderUpdates: updatedOrder });
 
             return {
                 ok: true,
@@ -224,6 +239,45 @@ export class OrdersService {
         } catch (e) {
             return {
                 ok: false,
+                error: e,
+            };
+        }
+    }
+
+    async takeOrder(driver: User, { id }: TakeOrderInput): Promise<TakeOrderOutput> {
+        try {
+            const order = await this.orderRepository.findOne({
+                where: {
+                    id: id,
+                },
+            });
+
+            if (!order) {
+                return {
+                    ok: false,
+                    error: "Order doesn't exist",
+                };
+            }
+
+            if (order.driver) {
+                return {
+                    ok: false,
+                    error: "Driver already exists",
+                };
+            }
+
+            order.driver = driver;
+            const updatedOrder = await this.orderRepository.save(order);
+
+            await this.pubSub.publish(NEW_ORDER_UPDATE, {
+                orderUpdates: updatedOrder,
+            });
+            return {
+                ok: true,
+            };
+        } catch (e) {
+            return {
+                ok: true,
                 error: e,
             };
         }

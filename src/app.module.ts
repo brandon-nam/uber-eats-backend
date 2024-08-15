@@ -12,13 +12,15 @@ import { JwtMiddleware } from "./jwt/jwt.middleware";
 import { AuthModule } from "./auth/auth.module";
 import { Verification } from "./users/entities/verification.entity";
 import { MailModule } from "./mail/mail.module";
-import { RestaurantModule } from './restaurant/restaurant.module';
+import { RestaurantModule } from "./restaurant/restaurant.module";
 import { Restaurant } from "./restaurant/entities/restaurant.entity";
 import { Category } from "./restaurant/entities/category.entity";
 import { Dish } from "./restaurant/entities/dish.entity";
-import { OrdersModule } from './orders/orders.module';
+import { OrdersModule } from "./orders/orders.module";
 import { Order } from "./orders/entities/order.entity";
 import { OrderItem } from "./orders/entities/order-item.entity";
+import { Context } from "graphql-ws";
+import { TOKEN_KEY_HTTP, TOKEN_KEY_WS } from "./common/common.constants";
 
 @Module({
     imports: [
@@ -51,7 +53,19 @@ import { OrderItem } from "./orders/entities/order-item.entity";
         GraphQLModule.forRoot<ApolloDriverConfig>({
             driver: ApolloDriver,
             autoSchemaFile: true,
-            context: ({ req }) => ({ user: req["user"] }),
+            context: ({ req, extra }) => {
+                return { token: req ? req.headers[TOKEN_KEY_HTTP] : extra[TOKEN_KEY_WS] };
+            },
+
+            subscriptions: {
+                "graphql-ws": {
+                    onConnect: (context: Context) => {
+                        let { connectionParams, extra } = context;
+
+                        extra[TOKEN_KEY_WS] = connectionParams[TOKEN_KEY_WS];
+                    },
+                },
+            },
         }),
         JwtModule.forRoot({
             privateKey: process.env.PRIVATE_KEY,
@@ -66,15 +80,17 @@ import { OrderItem } from "./orders/entities/order-item.entity";
         }),
         RestaurantModule,
         OrdersModule,
+        CommonModule,
     ],
     controllers: [],
     providers: [],
 })
-export class AppModule implements NestModule {
-    configure(consumer: MiddlewareConsumer) {
-        consumer.apply(JwtMiddleware).forRoutes({
-            path: "/graphql",
-            method: RequestMethod.POST,
-        });
-    }
+//implements NestModule
+export class AppModule {
+    // configure(consumer: MiddlewareConsumer) {
+    //     consumer.apply(JwtMiddleware).forRoutes({
+    //         path: "/graphql",
+    //         method: RequestMethod.POST,
+    //     });
+    // }
 }
