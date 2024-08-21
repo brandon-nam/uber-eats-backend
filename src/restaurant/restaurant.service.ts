@@ -330,7 +330,11 @@ export class RestaurantService {
 
     async myRestaurants(owner: User): Promise<MyRestaurantsOutput> {
         try {
-            const myRestaurants = await this.restaurantRepository.find({ where: owner });
+            const myRestaurants = await this.restaurantRepository.find({
+                where: { owner: { id: owner.id }},
+                relations:["owner"]
+            });
+
             return {
                 restaurants: myRestaurants,
                 ok: true,
