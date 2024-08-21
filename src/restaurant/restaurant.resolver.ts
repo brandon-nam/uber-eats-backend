@@ -17,24 +17,31 @@ import { Dish } from "./entities/dish.entity";
 import { CreateDishInput, CreateDishOutput } from "./dtos/create-dish.dto";
 import { DeleteDishInput, DeleteDishOutput } from "./dtos/delete-dish.dto";
 import { EditDishInput, EditDishOutput } from "./dtos/edit-dish.dto";
+import { MyRestaurantsOutput } from "src/users/dtos/my-restaurants.dto";
 
 @Resolver((of) => Restaurant)
 export class RestaurantResolver {
     constructor(private readonly restaurantService: RestaurantService) {}
 
     @Query((returns) => RestaurantOutput)
-    restaurant(@Args("input") restaurantInput: RestaurantInput) : Promise<RestaurantOutput> {
-        return this.restaurantService.findRestaurantById(restaurantInput); 
+    restaurant(@Args("input") restaurantInput: RestaurantInput): Promise<RestaurantOutput> {
+        return this.restaurantService.findRestaurantById(restaurantInput);
     }
 
-    @Query((returns) => SearchRestaurantOutput) 
-    searchRestaurant(@Args("input") searchRestaurantInput: SearchRestaurantInput) : Promise<SearchRestaurantOutput> {
+    @Query((returns) => SearchRestaurantOutput)
+    searchRestaurant(@Args("input") searchRestaurantInput: SearchRestaurantInput): Promise<SearchRestaurantOutput> {
         return this.restaurantService.searchRestaurant(searchRestaurantInput);
     }
 
     @Query((returns) => AllRestaurantsOutput)
     allRestaurants(@Args("input") restaurantsInput: AllRestaurantsInput): Promise<AllRestaurantsOutput> {
-        return this.restaurantService.allRestaurants(restaurantsInput); 
+        return this.restaurantService.allRestaurants(restaurantsInput);
+    }
+
+    @Query((returns) => MyRestaurantsOutput)
+    @Role(["Owner"])
+    async myRestaurants(@AuthUser() authUser: User): Promise<MyRestaurantsOutput> {
+        return this.restaurantService.myRestaurants(authUser); 
     }
 
     @Mutation((returns) => CreateRestaurantOutput)
@@ -69,7 +76,7 @@ export class RestaurantResolver {
 export class CategoryResolver {
     constructor(private readonly restaurantService: RestaurantService) {}
 
-    // For displaying every category that exists 
+    // For displaying every category that exists
     @Query((returns) => AllCategoriesOutput)
     async allCategories(): Promise<AllCategoriesOutput> {
         return this.restaurantService.allCategories();
@@ -81,13 +88,11 @@ export class CategoryResolver {
         return await this.restaurantService.countRestaurants(category);
     }
 
-    
     @Query((returns) => CategoryOutput)
     async category(@Args("input") categoryInput: CategoryInput): Promise<CategoryOutput> {
         return this.restaurantService.findCategoryBySlug(categoryInput);
     }
 }
-
 
 @Resolver((of) => Dish)
 export class DishResolver {
@@ -95,20 +100,19 @@ export class DishResolver {
 
     @Mutation((returns) => CreateDishOutput)
     @Role(["Owner"])
-    async createDish(@AuthUser() owner: User, @Args('input') createDishInput: CreateDishInput) : Promise<CreateDishOutput> {
+    async createDish(@AuthUser() owner: User, @Args("input") createDishInput: CreateDishInput): Promise<CreateDishOutput> {
         return this.restaurantService.createDish(owner, createDishInput);
     }
 
     @Mutation((returns) => DeleteDishOutput)
     @Role(["Owner"])
-    async deleteDish(@AuthUser() owner: User, @Args('input') deleteDishInput: DeleteDishInput) : Promise<DeleteDishOutput> {
-        return this.restaurantService.deleteDish(owner, deleteDishInput); 
+    async deleteDish(@AuthUser() owner: User, @Args("input") deleteDishInput: DeleteDishInput): Promise<DeleteDishOutput> {
+        return this.restaurantService.deleteDish(owner, deleteDishInput);
     }
 
-    @Mutation((returns) => EditDishOutput) 
+    @Mutation((returns) => EditDishOutput)
     @Role(["Owner"])
-    async editDish(@AuthUser() owner: User, @Args('input') editDishInput: EditDishInput) : Promise<EditDishOutput> {
-        return this.restaurantService.editDish(owner, editDishInput); 
+    async editDish(@AuthUser() owner: User, @Args("input") editDishInput: EditDishInput): Promise<EditDishOutput> {
+        return this.restaurantService.editDish(owner, editDishInput);
     }
 }
-

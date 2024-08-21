@@ -15,6 +15,7 @@ import { MailService } from "src/mail/mail.service";
 export class UsersService {
     constructor(
         @InjectRepository(User) private readonly users: Repository<User>,
+
         @InjectRepository(Verification) private readonly verification: Repository<Verification>,
         private readonly mailService: MailService,
         private readonly jwtService: JwtService
@@ -66,9 +67,9 @@ export class UsersService {
 
     async findById({ userId }: UserProfileInput): Promise<UserProfileOutput> {
         try {
-            console.log("userId: ",userId); 
+            console.log("userId: ", userId);
             const user = await this.users.findOneOrFail({ where: { id: userId } });
-            console.log("user email: ", user.email); 
+            console.log("user email: ", user.email);
             return {
                 ok: true,
                 user,
@@ -85,17 +86,17 @@ export class UsersService {
         try {
             const user = await this.users.findOne({ where: { id: userId } });
             if (email) {
-                const userWithNewEmail = await this.users.findOne({ where: { email: email } })
+                const userWithNewEmail = await this.users.findOne({ where: { email: email } });
                 if (userWithNewEmail != null) {
                     return {
-                        ok: false, 
-                        error: "A user with that email already exists."
-                    }
+                        ok: false,
+                        error: "A user with that email already exists.",
+                    };
                 }
 
                 user.email = email;
                 user.verified = false;
-                await this.verification.delete({ user: { id: userId } }); 
+                await this.verification.delete({ user: { id: userId } });
                 const verification = await this.verification.save(this.verification.create({ user: user }));
                 await this.mailService.sendVerificationEmail(user.email, verification.code);
             }

@@ -10,6 +10,7 @@ import { UserProfileInput, UserProfileOutput } from "./dtos/user-profile.dto";
 import { EditProfileInput, EditProfileOutput } from "./dtos/edit-profile.dto";
 import { VerifyEmailInput, VerifyEmailOutput } from "./dtos/verify-email.dto";
 import { Role } from "src/auth/auth-role.decorator";
+import { Restaurant } from "src/restaurant/entities/restaurant.entity";
 
 @Resolver((of) => User)
 export class UsersResolver {
