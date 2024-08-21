@@ -21,6 +21,7 @@ import { Order } from "./orders/entities/order.entity";
 import { OrderItem } from "./orders/entities/order-item.entity";
 import { Context } from "graphql-ws";
 import { TOKEN_KEY_HTTP, TOKEN_KEY_WS } from "./common/common.constants";
+import { UploadsModule } from './uploads/uploads.module';
 
 @Module({
     imports: [
@@ -81,6 +82,7 @@ import { TOKEN_KEY_HTTP, TOKEN_KEY_WS } from "./common/common.constants";
         RestaurantModule,
         OrdersModule,
         CommonModule,
+        UploadsModule,
     ],
     controllers: [],
     providers: [],
