@@ -21,7 +21,7 @@ import { Order } from "./orders/entities/order.entity";
 import { OrderItem } from "./orders/entities/order-item.entity";
 import { Context } from "graphql-ws";
 import { TOKEN_KEY_HTTP, TOKEN_KEY_WS } from "./common/common.constants";
-import { UploadsModule } from './uploads/uploads.module';
+import { UploadsModule } from "./uploads/uploads.module";
 
 @Module({
     imports: [
@@ -31,10 +31,10 @@ import { UploadsModule } from './uploads/uploads.module';
             ignoreEnvFile: process.env.NODE_ENV === "production",
             validationSchema: Joi.object({
                 NODE_ENV: Joi.string().valid("dev", "production", "test"),
-                DB_HOST: Joi.string().required(),
-                DB_PORT: Joi.string().required(),
-                DB_USERNAME: Joi.string().required(),
-                DB_DATABASE: Joi.string().required(),
+                DB_HOST: Joi.string(),
+                DB_PORT: Joi.string(),
+                DB_USERNAME: Joi.string(),
+                DB_DATABASE: Joi.string(),
                 PRIVATE_KEY: Joi.string().required(),
                 MAILGUN_API_KEY: Joi.string().required(),
                 DOMAIN_NAME: Joi.string().required(),
@@ -43,11 +43,16 @@ import { UploadsModule } from './uploads/uploads.module';
         }),
         TypeOrmModule.forRoot({
             type: "postgres",
-            host: process.env.DB_HOST,
-            port: +process.env.DB_PORT,
-            username: process.env.DB_USERNAME,
-            database: process.env.DB_DATABASE,
-            password: process.env.DB_PASSWORD,
+            ...(process.env.DATABASE_URL
+                ? { url: process.env.DATABASE_URL }
+                : {
+                      host: process.env.DB_HOST,
+                      port: +process.env.DB_PORT,
+                      username: process.env.DB_USERNAME,
+                      database: process.env.DB_DATABASE,
+                      password: process.env.DB_PASSWORD,
+                  }),
+
             entities: [User, Verification, Restaurant, Category, Dish, Order, OrderItem],
             synchronize: process.env.NODE_ENV !== "prod",
             logging: process.env.NODE_ENV !== "prod" && process.env.NODE_ENV !== "test",
