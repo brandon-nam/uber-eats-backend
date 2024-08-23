@@ -28,6 +28,7 @@ export class OrdersResolver {
     }
 
     @Query((returns) => GetOrderOutput)
+    @Role(["Any"])
     async getOrder(@AuthUser() user: User, @Args("input") getOrderInput: GetOrderInput): Promise<GetOrderOutput> {
         return this.ordersService.getOrder(user, getOrderInput);
     }
@@ -38,7 +39,7 @@ export class OrdersResolver {
         return this.ordersService.createOrder(customer, createOrderInput);
     }
 
-    @Mutation((returns) => CreateOrderOutput)
+    @Mutation((returns) => EditOrderOutput)
     @Role(["Any"])
     async editOrder(@AuthUser() customer: User, @Args("input") editOrderInput: EditOrderInput): Promise<EditOrderOutput> {
         return this.ordersService.editOrder(customer, editOrderInput);

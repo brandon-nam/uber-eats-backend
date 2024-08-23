@@ -28,9 +28,9 @@ export class AuthGuard implements CanActivate {
             const decoded = this.jwtService.verify(token.toString());
             if (typeof decoded === "object" && decoded.hasOwnProperty("id")) {
                 try {
+                    
                     const { ok, user } = await this.usersService.findById({ userId: decoded["id"] });
                     if (ok) {
-                        
                         gqlContext["user"] = user;
                     }
                 } catch (e) {

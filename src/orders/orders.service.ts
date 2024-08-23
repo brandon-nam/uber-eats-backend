@@ -47,7 +47,7 @@ export class OrdersService {
                 }
 
                 let dishTotalPrice = dish.price;
-
+                
                 for (const itemOption of item.options) {
                     const matchingOption = dish.options.find((dishOption) => {
                         return dishOption.name === itemOption.name;
@@ -93,6 +93,7 @@ export class OrdersService {
             return {
                 ok: true,
                 error: null,
+                orderId: newOrder.id
             };
         } catch (e) {
             return {
@@ -160,7 +161,6 @@ export class OrdersService {
                 },
                 relations: ["restaurant"],
             });
-
             if (!order) {
                 return {
                     ok: false,
@@ -180,6 +180,7 @@ export class OrdersService {
                 order: order,
             };
         } catch (e) {
+            console.log(e);
             return {
                 ok: false,
                 error: e,

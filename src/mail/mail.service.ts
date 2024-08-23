@@ -12,7 +12,7 @@ export class MailService {
 
     async sendEmail(to: string, subject: string, template: string, emailVars: EmailVar[]):Promise<boolean> {
         const form = new FormData();
-        form.append("from", `Dohyun from Uber Eats Clone <mailgun@${this.options.domain}>`);
+        form.append("from", `Dohyun from Grab Food Clone <mailgun@${this.options.domain}>`);
         form.append("to", to);
         form.append("subject", subject);
         form.append("template", template);

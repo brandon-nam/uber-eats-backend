@@ -1,4 +1,4 @@
-import { Field, InputType, Int, ObjectType, PickType } from "@nestjs/graphql";
+import { Field, Float, InputType, Int, ObjectType, PickType } from "@nestjs/graphql";
 import { CoreOutput } from "src/common/dtos/output.dto";
 import { OrderItemOption } from "../entities/order-item.entity";
 
@@ -9,6 +9,9 @@ class CreateOrderItemInput {
 
     @Field(type => [OrderItemOption], { nullable: true })
     options?: OrderItemOption[]; 
+
+    @Field(type => Int)
+    price: number; 
 }
 
 @InputType()
@@ -23,5 +26,6 @@ export class CreateOrderInput {
 
 @ObjectType() 
 export class CreateOrderOutput extends CoreOutput {
-    
+    @Field(type => Number, { nullable: true })
+    orderId?: number; 
 }

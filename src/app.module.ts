@@ -62,7 +62,7 @@ import { UploadsModule } from './uploads/uploads.module';
                 "graphql-ws": {
                     onConnect: (context: Context) => {
                         let { connectionParams, extra } = context;
-
+                        console.log("connection params: \n \n \n", connectionParams[TOKEN_KEY_WS]);
                         extra[TOKEN_KEY_WS] = connectionParams[TOKEN_KEY_WS];
                     },
                 },
