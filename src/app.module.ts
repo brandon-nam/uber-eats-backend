@@ -53,6 +53,7 @@ import { UploadsModule } from './uploads/uploads.module';
             logging: process.env.NODE_ENV !== "prod" && process.env.NODE_ENV !== "test",
         }),
         GraphQLModule.forRoot<ApolloDriverConfig>({
+            playground: process.env.NODE_ENV !== "production",
             driver: ApolloDriver,
             autoSchemaFile: true,
             context: ({ req, extra }) => {
