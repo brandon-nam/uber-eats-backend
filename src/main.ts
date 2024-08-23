@@ -8,12 +8,8 @@ async function bootstrap() {
   app.useGlobalPipes(
     new ValidationPipe()
   )
-  app.enableCors({
-    allowedHeaders: ['content-type', 'x-jwt'],
-    origin: 'http://localhost:3000',
-    credentials: true,
-  });
+  app.enableCors();
 
-  await app.listen(4000);
+  await app.listen(process.env.PORT || 4000);
 }
 bootstrap();
