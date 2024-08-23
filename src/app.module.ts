@@ -28,9 +28,9 @@ import { UploadsModule } from './uploads/uploads.module';
         ConfigModule.forRoot({
             isGlobal: true,
             envFilePath: process.env.NODE_ENV === "dev" ? ".env.development.local" : ".env.test.local",
-            ignoreEnvFile: process.env.NODE_ENV === "prod",
+            ignoreEnvFile: process.env.NODE_ENV === "production",
             validationSchema: Joi.object({
-                NODE_ENV: Joi.string().valid("dev", "prod", "test"),
+                NODE_ENV: Joi.string().valid("dev", "production", "test"),
                 DB_HOST: Joi.string().required(),
                 DB_PORT: Joi.string().required(),
                 DB_USERNAME: Joi.string().required(),
@@ -47,6 +47,7 @@ import { UploadsModule } from './uploads/uploads.module';
             port: +process.env.DB_PORT,
             username: process.env.DB_USERNAME,
             database: process.env.DB_DATABASE,
+            password: process.env.DB_PASSWORD,
             entities: [User, Verification, Restaurant, Category, Dish, Order, OrderItem],
             synchronize: process.env.NODE_ENV !== "prod",
             logging: process.env.NODE_ENV !== "prod" && process.env.NODE_ENV !== "test",
